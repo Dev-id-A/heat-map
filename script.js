@@ -25,6 +25,21 @@
             .attr("preserveAspectRatio", "xMidYMid meet")
             .style("background-color", "wheat");
 
+//Title
+        svg.append("text")
+            .text("Monthly Global Land-Surface Temperature")
+            .attr("id", "title")
+            .attr("y", padding/3)
+            .attr("x", width/3);
+
+//Description
+        svg.append("text")
+            .text("1753 - 2015: base temperature 8.66 ℃")
+            .attr("id", "description")
+            .attr("y", padding/1.7)
+            .attr("x", width/2.7)
+            .style("font-size", "14px");
+
 
         
     }
