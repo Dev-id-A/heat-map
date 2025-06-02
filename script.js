@@ -56,10 +56,12 @@
             .call(xAxis)
     
 //yScale
-const months = ["December", "November", "October", "September", "August", "July", "June", "May", "April", "March", "February", "January" ]
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
+
         const yScale = d3.scaleBand()
                             .domain(months)
-                            .range([height - padding*1.5, padding])
+                            .range([padding, height - padding*1.5])
+                            .padding(0.1)
 
         const yAxis = d3.axisLeft(yScale);
                             
@@ -68,7 +70,25 @@ const months = ["December", "November", "October", "September", "August", "July"
             .attr("transform", `translate(${padding}, 0)`)
             .call(yAxis);
 
+//Cells 
+const totalYears = d3.max(data.monthlyVariance, d =>d.year) - d3.min(data.monthlyVariance, d => d.year) + 1;
 
+        svg.selectAll("rect")
+                            .data(data.monthlyVariance)
+                            .enter()
+                            .append("rect")
+                            .attr("class", "cell")
+                            .attr("x", d => xScale(d.year))
+                            .attr("y", d => yScale(months[d.month - 1]))
+                            .attr("width", (width - padding * 2) / totalYears)
+                            .attr("height", yScale.bandwidth())
+                            .attr("fill", d =>{
+                                const varTemp = data.baseTemperature + d.variance;
+                                return varTemp < 4 ? "#4169E1":
+                                varTemp < 6 ? "#7EC0EE":
+                                varTemp < 8 ? "#E0FFFF" :
+                                varTemp < 10 ? "#FF7F50" : "#CD5B45"
+                            });
         
     }
 
