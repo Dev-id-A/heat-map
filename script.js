@@ -56,7 +56,7 @@
             .call(xAxis)
     
 //yScale
-const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ]
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];
 
         const yScale = d3.scaleBand()
                             .domain(months)
@@ -72,11 +72,12 @@ const months = ["January", "February", "March", "April", "May", "June", "July", 
 
 //Cells 
 const dataColors = (d) =>{
-    return d < 4 ? "#4169E1":
-    d < 6 ? "#7EC0EE":
-    d < 8 ? "#E0FFFF":
-    d < 10 ? "#FFA07A" :
-    d < 12 ? "#FF7F50" : "#CD5B45";
+    return d <= 4 ? "#4169E1":
+    d <= 6 ? "#7EC0EE":
+    d <= 8 ? "#E0FFFF":
+    d <= 10 ? "#FFA07A" :
+    d <= 12 ? "#FF7F50" :
+    d > 12 ? "#CD5B45" : "";
     }
 
 const totalYears = d3.max(data.monthlyVariance, d =>d.year) - d3.min(data.monthlyVariance, d => d.year) + 1;
@@ -125,12 +126,47 @@ const maxTemp = d3.max(data.monthlyVariance, d => data.baseTemperature + d.varia
                 .attr("height", 10)
                 .attr("fill", d => dataColors(d))
                 .attr("stroke", "black");
+
+//Tooltip creation
+        const tooltip = d3.select("body")
+                            .append("div")
+                            .attr("id", "tooltip")
+
+//Tooltip styling
+                            .style("position", "absolute")
+                            .style("opacity", 0)
+                            .style("padding", "1%")
+                            .style("border", "2px solid black")
+                            .style("font-size", "16px")
+                            .style("border-radius", "10px")
+                            .style("text-align", "center");
+
+//Tooltip adittion
+        cells.attr("data-year", d => d.year)
+                .on("mouseover", (e, d) =>{
+                    tooltip.style("opacity", 1)
+                            .style("display", "block")
+                            .style("background-color", dataColors(data.baseTemperature + d.variance))
+                            .attr("data-year", d.year)
+                            .html(`${d.year} - ${months[d.month - 1]}<br>
+                                    ${Math.round((data.baseTemperature + d.variance) * 10)/10} ℃<br>
+                                    ${d.variance}` );
+
+                    d3.select(e.currentTarget)
+                        .style("stroke", "black");
+                })
+                .on("mousemove", e =>
+                    tooltip.style("left",(e.pageX + 10) + "px")
+                            .style("top",(e.pageY + 10) + "px")
+                )
+                .on("mouseout", e => {
+                    tooltip.style("opacity", 0)
+                            .attr("display", "none");
+                    
+                    d3.select(e.currentTarget)
+                        .style("stroke", "none")
+                        });
     }
 
     fetchData()
-        .then(data => {
-            createSVG(data)
-            console.log(data);
-            console.log(data.monthlyVariance[5]);
-            console.log(data.monthlyVariance[67].year);
-        })
+        .then(data => createSVG(data))
