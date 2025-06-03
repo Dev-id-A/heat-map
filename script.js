@@ -46,12 +46,12 @@
                             .range([padding, width - padding]);
 
         const xAxis = d3.axisBottom(xScale)
-                            .tickValues(d3.range(1760, 2015, 10))
+                            .tickValues(d3.range(1760, 2016, 10))
                             .tickFormat(d3.format("d"));
 
         svg.append("g")
             .attr("id", "x-axis")
-            .attr("transform", `translate(0, ${height - padding*1.5})`)
+            .attr("transform", `translate(0, ${height - padding * 1.5})`)
             .style("font-size", "7px")
             .call(xAxis)
     
@@ -60,8 +60,8 @@ const months = ["January", "February", "March", "April", "May", "June", "July", 
 
         const yScale = d3.scaleBand()
                             .domain(months)
-                            .range([padding, height - padding*1.5])
-                            .padding(0.1)
+                            .range([padding, height - padding * 1.5])
+                            .padding(0.1);
 
         const yAxis = d3.axisLeft(yScale);
                             
@@ -71,9 +71,17 @@ const months = ["January", "February", "March", "April", "May", "June", "July", 
             .call(yAxis);
 
 //Cells 
+const dataColors = (d) =>{
+    return d < 4 ? "#4169E1":
+    d < 6 ? "#7EC0EE":
+    d < 8 ? "#E0FFFF":
+    d < 10 ? "#FFA07A" :
+    d < 12 ? "#FF7F50" : "#CD5B45";
+    }
+
 const totalYears = d3.max(data.monthlyVariance, d =>d.year) - d3.min(data.monthlyVariance, d => d.year) + 1;
 
-        svg.selectAll("rect")
+        const cells = svg.selectAll("rect")
                             .data(data.monthlyVariance)
                             .enter()
                             .append("rect")
@@ -84,12 +92,39 @@ const totalYears = d3.max(data.monthlyVariance, d =>d.year) - d3.min(data.monthl
                             .attr("height", yScale.bandwidth())
                             .attr("fill", d =>{
                                 const varTemp = data.baseTemperature + d.variance;
-                                return varTemp < 4 ? "#4169E1":
-                                varTemp < 6 ? "#7EC0EE":
-                                varTemp < 8 ? "#E0FFFF" :
-                                varTemp < 10 ? "#FF7F50" : "#CD5B45"
+                                return dataColors(varTemp);
                             });
+
+//Cells data
+        cells.attr("data-month", d => d.month - 1)
+                .attr("data-year", d => d.year)
+                .attr("data-temp", d => data.baseTemperature + d.variance);
+
+//Legend
+const minTemp = d3.min(data.monthlyVariance, d => data.baseTemperature + d.variance) - 1;
+const maxTemp = d3.max(data.monthlyVariance, d => data.baseTemperature + d.variance) + 1;
+
+        const legendScale = d3.scaleLinear()
+                                .domain([minTemp, maxTemp])
+                                .range([width - padding * 2, width - 20]);
+
+        const legendAxis = d3.axisTop(legendScale);
+
+        const legend = svg.append("g")
+                            .attr("id", "legend")
+                            .attr("transform", `translate(0, ${padding/2.5})`)
+                            .call(legendAxis);
         
+        legend.selectAll("rect")
+                .data([4, 6, 8, 10, 12, 14])
+                .enter()
+                .append("rect")
+                .attr("x", d => legendScale(d) - 25)
+                .attr("y", 0)
+                .attr("width", 25)
+                .attr("height", 10)
+                .attr("fill", d => dataColors(d))
+                .attr("stroke", "black");
     }
 
     fetchData()
